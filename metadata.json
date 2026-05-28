@@ -1,0 +1,6 @@
+{
+  "name": "Thomatech Car Tracker",
+  "description": "Professional security solutions website for Thomatech Car Tracker, offering car security, home CCTV, and solar installations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
