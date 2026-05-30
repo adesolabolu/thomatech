@@ -5,10 +5,10 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-brand-900 text-slate-400 py-12 border-t border-slate-800">
+    <footer className="bg-brand-900 text-slate-400 py-12 border-t border-brand-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="grid md:grid-cols-4 gap-8 mb-8 pb-8 border-b border-slate-800">
+        <div className="grid md:grid-cols-4 gap-8 mb-8 pb-8 border-b border-brand-800">
           
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-3 mb-4">
@@ -30,9 +30,9 @@ export function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-3">
-              <li><a href="#services" className="hover:text-white transition-colors">Services</a></li>
-              <li><a href="#contact" className="hover:text-white transition-colors">Contact</a></li>
-              <li><a href="#about" className="hover:text-white transition-colors">About Us</a></li>
+              <li><a href="#services" className="hover:text-brand-cyan transition-colors">Services</a></li>
+              <li><a href="#contact" className="hover:text-brand-cyan transition-colors">Contact</a></li>
+              <li><a href="#about" className="hover:text-brand-cyan transition-colors">About Us</a></li>
             </ul>
           </div>
 
@@ -43,7 +43,7 @@ export function Footer() {
                 href={INSTAGRAM_LINK} 
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 hover:text-white transition-colors"
+                className="inline-flex items-center gap-2 hover:text-brand-cyan transition-colors"
               >
                 <Instagram className="w-5 h-5" />
                 Instagram
@@ -52,7 +52,7 @@ export function Footer() {
                 href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noreferrer" 
-                className="inline-flex items-center gap-2 hover:text-white transition-colors"
+                className="inline-flex items-center gap-2 hover:text-brand-cyan transition-colors"
               >
                 <Phone className="w-5 h-5" />
                 WhatsApp

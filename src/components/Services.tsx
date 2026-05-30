@@ -1,87 +1,257 @@
-import { Car, Cctv, Sun, Shield, Lock, Zap } from 'lucide-react';
+import { Car, Cctv, Sun, ArrowRight, Zap } from 'lucide-react';
+import { useRef, useEffect, useState } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const services = [
   {
-    title: "Car Tracking Systems",
-    description: "Advanced GPS tracking solutions allowing you to monitor your vehicle's location in real-time, view route history, and remotely demobilize the engine if stolen.",
+    title: "Vehicle Security Tracking",
+    description: "Monitor your fleet and private vehicles using cutting-edge GPS tracking technology. Locate assets in real-time, view detailed route histories, and remotely immobilize engines.",
     icon: Car,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50"
+    hoverBgClass: "group-hover:bg-[#00E5FF]",
+    textAccentClass: "text-[#00E5FF]",
+    bgAccentClass: "bg-[#00E5FF]",
+    ctaText: "Get a Vehicle Security Quote",
+    ctaBorderClass: "border-[#00E5FF]",
+    ctaTextClass: "text-[#00E5FF]",
+    effect: "scan",
+    formValue: "Vehicle Security & Tracking"
   },
   {
-    title: "CCTV Installation",
-    description: "High-definition security cameras for homes and businesses. Access live feeds from anywhere via your smartphone with crystal-clear night vision.",
+    title: "Home Security & Access",
+    description: "Secure your perimeter with high-definition CCTV surveillance. Implement smart locks, biometric entry points, and automated gate systems for robust, 24/7 access control.",
     icon: Cctv,
-    color: "text-rose-600",
-    bgColor: "bg-rose-50"
+    hoverBgClass: "group-hover:bg-[#3B82F6]",
+    textAccentClass: "text-[#3B82F6]",
+    bgAccentClass: "bg-[#3B82F6]",
+    ctaText: "Secure My Property",
+    ctaBorderClass: "border-[#3B82F6]",
+    ctaTextClass: "text-[#3B82F6]",
+    effect: "scan",
+    formValue: "Home Security & Access Control"
   },
   {
-    title: "Solar & Inverter Solutions",
-    description: "Say goodbye to power outages. We install premium solar panels, deep-cycle batteries, and intelligent inverters scaled to your energy needs.",
+    title: "Solar & Backup Power",
+    description: "Ensure continuous defense with reliable solar power. We eliminate downtime for your security systems using premium solar panels, intelligent inverters, and deep-cycle batteries.",
     icon: Sun,
-    color: "text-brand-accent",
-    bgColor: "bg-amber-50"
-  },
-  {
-    title: "Access Control Systems",
-    description: "Manage who enters your premises. We offer biometric scanners, RFID card readers, and smart locks for enhanced physical security.",
-    icon: Lock,
-    color: "text-slate-700",
-    bgColor: "bg-slate-100"
-  },
-  {
-    title: "Perimeter Fencing",
-    description: "Electric fencing and automated gate systems designed to deter intruders and provide a robust first line of defense for your property.",
-    icon: Shield,
-    color: "text-indigo-600",
-    bgColor: "bg-indigo-50"
-  },
-  {
-    title: "Electrical Wiring",
-    description: "Professional residential and commercial electrical wiring layout, ensuring safety and optimal power distribution for all your security devices.",
-    icon: Zap,
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-50"
+    hoverBgClass: "group-hover:bg-[#F59E0B]",
+    textAccentClass: "text-[#F59E0B]",
+    bgAccentClass: "bg-[#F59E0B]",
+    ctaText: "Explore Solar Solutions",
+    ctaBorderClass: "border-[#F59E0B]",
+    ctaTextClass: "text-[#F59E0B]",
+    effect: "counter",
+    formValue: "Solar & Backup Power"
   }
 ];
 
-export function Services() {
+export interface ServicesProps {
+  onSelectService?: (service: string) => void;
+}
+
+export function Services({ onSelectService }: ServicesProps) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Angled notch at the top left - removed to support clean large rounded corners
+  // const cardClipPath = "polygon(0 50px, 50px 50px, 65px 0, 100% 0, 100% 100%, 0 100%)";
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // Header staggered animation
+      if (headerRef.current) {
+        gsap.from(headerRef.current.children, {
+          y: 40,
+          opacity: 0,
+          duration: 0.8,
+          stagger: 0.2,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: headerRef.current,
+            start: "top 80%",
+          }
+        });
+      }
+
+      // Problem-Solution Matrix Fade
+      cardsRef.current.forEach((card, index) => {
+        if (!card) return;
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+          }
+        });
+
+        tl.from(card, {
+          y: 50,
+          opacity: 0,
+          duration: 0.6,
+          ease: "power3.out",
+          delay: index * 0.15
+        });
+
+        const scanLine = card.querySelector('.scan-line');
+        if (scanLine) {
+          tl.fromTo(scanLine, 
+            { y: '-10%', opacity: 0 },
+            { y: '110%', opacity: 0.5, duration: 2, ease: "linear", repeat: -1 },
+            "<"
+          );
+        }
+
+        const counterElement = card.querySelector('.energy-counter');
+        if (counterElement) {
+          let obj = { val: 0 };
+          tl.to(obj, {
+            val: 100,
+            duration: 2,
+            ease: "power3.out",
+            onUpdate: function() {
+              counterElement.innerHTML = `${Math.floor(obj.val)}% Backup`;
+            }
+          }, "-=0.2");
+        }
+
+        // Hover animations
+        const hoverIcon = card.querySelector('.hover-icon');
+        if (hoverIcon) {
+          let hoverAnim: gsap.core.Tween;
+          
+          if (index === 0) {
+            // Pulse for Car
+            hoverAnim = gsap.to(hoverIcon, { scale: 1.15, duration: 0.6, repeat: -1, yoyo: true, ease: "sine.inOut", paused: true });
+          } else if (index === 1) {
+            // Scan-rotation for CCTV
+            hoverAnim = gsap.to(hoverIcon, { rotation: 20, duration: 1.5, repeat: -1, yoyo: true, ease: "power1.inOut", paused: true });
+          } else if (index === 2) {
+            // Slow rotation for Sun
+            hoverAnim = gsap.to(hoverIcon, { rotation: 360, duration: 8, repeat: -1, ease: "linear", paused: true });
+          }
+
+          card.addEventListener('mouseenter', () => {
+            hoverAnim?.play();
+          });
+          
+          card.addEventListener('mouseleave', () => {
+            hoverAnim?.pause();
+            gsap.to(hoverIcon, { scale: 1, rotation: 0, duration: 0.4, ease: "power2.out" });
+            hoverAnim?.time(0);
+          });
+        }
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section id="services" className="py-24 bg-white">
+    <section ref={sectionRef} id="services" className="py-24 bg-brand-900 text-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-brand-blue font-semibold tracking-wide uppercase text-sm mb-3">Our Expertise</h2>
-          <h3 className="text-3xl md:text-4xl font-display font-bold text-brand-900 mb-6">
-            Comprehensive Solutions Under One Roof
-          </h3>
-          <p className="text-lg text-slate-600">
-            We provide end-to-end installation and maintenance services, ensuring your assets are protected and your power stays uninterrupted.
-          </p>
+        <div ref={headerRef} className="mb-20 grid lg:grid-cols-2 gap-8 items-end">
+          <div>
+            <h2 className="text-3xl md:text-5xl font-display font-bold leading-tight mb-6">
+              How we help
+            </h2>
+          </div>
+          <div>
+            <p className="text-slate-400 text-lg leading-relaxed max-w-xl">
+              With strong foundations in physical security, our comprehensive platforms solve common challenges 
+              homeowners and fleet managers face, such as managing access, securing valuable assets, and understanding 
+              risks during power outages.
+            </p>
+            <div className="mt-6">
+              <span className="font-semibold text-sm uppercase tracking-wider text-brand-cyan">Services</span>
+            </div>
+          </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {services.map((service, index) => {
             const Icon = service.icon;
+            
             return (
               <div 
                 key={index} 
-                className="group p-8 rounded-3xl bg-slate-50 border border-slate-100 hover:border-blue-100 hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300"
+                ref={el => cardsRef.current[index] = el}
+                className={`group relative h-[480px] sm:h-[520px] w-full mt-4 sm:mt-0`}
               >
-                <div className={`w-14 h-14 rounded-2xl ${service.bgColor} ${service.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                  <Icon className="w-7 h-7" strokeWidth={1.5} />
+                {/* Number / Label */}
+                <div className="absolute top-4 left-4 text-xs font-mono text-white/50 z-10 transition-colors duration-500 group-hover:text-brand-900 group-hover:font-bold">
+                  / 0{index + 1}
                 </div>
-                <h4 className="text-xl font-display font-bold text-brand-900 mb-3">
-                  {service.title}
-                </h4>
-                <p className="text-slate-600 leading-relaxed">
-                  {service.description}
-                </p>
+                
+                {/* Outer Border Layer */}
+                <div 
+                  className={`absolute inset-0 bg-brand-800/50 ${service.hoverBgClass} rounded-[24px] transition-all duration-500`}
+                >
+                  {/* Inner Background Layer */}
+                  <div 
+                    className={`absolute top-[1px] left-[1px] right-[1px] bottom-[1px] bg-brand-800 ${service.hoverBgClass} rounded-[24px] transition-colors duration-500 overflow-hidden`}
+                  >
+                    {/* Scan Line Effect for Security */}
+                    {service.effect === 'scan' && (
+                      <div className="scan-line absolute left-0 right-0 h-32 bg-gradient-to-b from-transparent via-[rgba(0,229,255,0.1)] to-transparent opacity-0 pointer-events-none z-20"></div>
+                    )}
+                    
+                    {/* Default State Content */}
+                    <div className="absolute inset-0 p-6 sm:p-10 flex flex-col items-center justify-center transition-all duration-500 group-hover:opacity-0 group-hover:scale-95 group-hover:-translate-y-4 z-10">
+                      {/* Counter for Solar */}
+                      {service.effect === 'counter' && (
+                        <div className="absolute top-8 right-8 flex items-center gap-2">
+                           <Zap className={`w-4 h-4 ${service.textAccentClass}`} />
+                           <span className={`energy-counter font-mono font-bold text-sm ${service.textAccentClass}`}>0% Backup</span>
+                        </div>
+                      )}
+
+                      <div className="relative w-32 h-32 mb-10 flex items-center justify-center">
+                        <div className="absolute inset-0 bg-white/5 rounded-full blur-xl"></div>
+                        <div className="relative bg-gradient-to-br from-[#0B0F19] to-[#1E293B] shadow-[inset_0_2px_15px_rgba(0,0,0,0.6)] w-24 h-24 rounded-[20px] flex items-center justify-center border border-slate-700/50 skew-y-3 skew-x-3 transform-gpu">
+                           <Icon className={`w-12 h-12 ${service.textAccentClass}`} strokeWidth={1.5} />
+                           <div className={`absolute -top-3 -right-3 w-8 h-8 rounded-full ${service.bgAccentClass} border-4 border-[#0B0F19] flex items-center justify-center text-[#0B0F19] font-bold text-lg`}>
+                              *
+                           </div>
+                        </div>
+                      </div>
+                      
+                      <h4 className="text-2xl font-sans font-bold text-center leading-snug tracking-tight">
+                        {service.title}
+                      </h4>
+                    </div>
+
+                    {/* Hover State Content */}
+                    <div className="absolute inset-0 p-6 sm:p-10 flex flex-col justify-center transition-all duration-500 opacity-0 translate-y-8 group-hover:opacity-100 group-hover:translate-y-0 z-10">
+                      
+                      <Icon className="hover-icon w-10 h-10 text-brand-900 mb-6" strokeWidth={2} />
+                      
+                      <h4 className="text-2xl font-sans font-bold text-white mb-4 leading-snug tracking-tight drop-shadow-md">
+                        {service.title}
+                      </h4>
+
+                      <p className="text-brand-900 text-base sm:text-lg font-semibold leading-relaxed">
+                        {service.description}
+                      </p>
+                      
+                      <a 
+                        href="#quote" 
+                        onClick={() => onSelectService && onSelectService(service.formValue)}
+                        className={`mt-8 inline-flex items-center justify-center px-6 py-3 border-2 rounded-xl bg-brand-900 font-bold transition-transform hover:scale-105 shadow-xl ${service.ctaBorderClass} ${service.ctaTextClass}`}
+                      >
+                         {service.ctaText}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             );
           })}
         </div>
-
       </div>
     </section>
   );
