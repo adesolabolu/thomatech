@@ -10,7 +10,7 @@ const services = [
     title: "Vehicle Security Tracking",
     description: "Monitor your fleet and private vehicles using cutting-edge GPS tracking technology. Locate assets in real-time, view detailed route histories, and remotely immobilize engines.",
     icon: Car,
-    hoverBgClass: "group-hover:bg-[#00E5FF]",
+    activeBgClass: "bg-[#00E5FF]",
     textAccentClass: "text-[#00E5FF]",
     bgAccentClass: "bg-[#00E5FF]",
     ctaText: "Get a Vehicle Security Quote",
@@ -23,7 +23,7 @@ const services = [
     title: "Home Security & Access",
     description: "Secure your perimeter with high-definition CCTV surveillance. Implement smart locks, biometric entry points, and automated gate systems for robust, 24/7 access control.",
     icon: Cctv,
-    hoverBgClass: "group-hover:bg-[#3B82F6]",
+    activeBgClass: "bg-[#3B82F6]",
     textAccentClass: "text-[#3B82F6]",
     bgAccentClass: "bg-[#3B82F6]",
     ctaText: "Secure My Property",
@@ -36,7 +36,7 @@ const services = [
     title: "Solar & Backup Power",
     description: "Ensure continuous defense with reliable solar power. We eliminate downtime for your security systems using premium solar panels, intelligent inverters, and deep-cycle batteries.",
     icon: Sun,
-    hoverBgClass: "group-hover:bg-[#F59E0B]",
+    activeBgClass: "bg-[#F59E0B]",
     textAccentClass: "text-[#F59E0B]",
     bgAccentClass: "bg-[#F59E0B]",
     ctaText: "Explore Solar Solutions",
@@ -55,6 +55,8 @@ export function Services({ onSelectService }: ServicesProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const hoverAnims = useRef<(gsap.core.Tween | null)[]>([]);
+  const [activeCard, setActiveCard] = useState<number | null>(null);
 
   // Angled notch at the top left - removed to support clean large rounded corners
   // const cardClipPath = "polygon(0 50px, 50px 50px, 65px 0, 100% 0, 100% 100%, 0 100%)";
@@ -117,10 +119,10 @@ export function Services({ onSelectService }: ServicesProps) {
           }, "-=0.2");
         }
 
-        // Hover animations
+        // Hover animations setup
         const hoverIcon = card.querySelector('.hover-icon');
         if (hoverIcon) {
-          let hoverAnim: gsap.core.Tween;
+          let hoverAnim: gsap.core.Tween | null = null;
           
           if (index === 0) {
             // Pulse for Car
@@ -133,15 +135,7 @@ export function Services({ onSelectService }: ServicesProps) {
             hoverAnim = gsap.to(hoverIcon, { rotation: 360, duration: 8, repeat: -1, ease: "linear", paused: true });
           }
 
-          card.addEventListener('mouseenter', () => {
-            hoverAnim?.play();
-          });
-          
-          card.addEventListener('mouseleave', () => {
-            hoverAnim?.pause();
-            gsap.to(hoverIcon, { scale: 1, rotation: 0, duration: 0.4, ease: "power2.out" });
-            hoverAnim?.time(0);
-          });
+          hoverAnims.current[index] = hoverAnim;
         }
       });
     }, sectionRef);
@@ -174,25 +168,47 @@ export function Services({ onSelectService }: ServicesProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {services.map((service, index) => {
             const Icon = service.icon;
+            const isActive = activeCard === index;
             
             return (
               <div 
                 key={index} 
                 ref={el => cardsRef.current[index] = el}
-                className={`group relative h-[480px] sm:h-[520px] w-full mt-4 sm:mt-0`}
+                className={`relative h-[480px] sm:h-[520px] w-full mt-4 sm:mt-0 cursor-pointer lg:cursor-default`}
+                onMouseEnter={() => {
+                  setActiveCard(index);
+                  hoverAnims.current[index]?.play();
+                }}
+                onMouseLeave={() => {
+                  setActiveCard(null);
+                  hoverAnims.current[index]?.pause();
+                  gsap.to(cardsRef.current[index]?.querySelector('.hover-icon'), { scale: 1, rotation: 0, duration: 0.4, ease: "power2.out" });
+                  hoverAnims.current[index]?.time(0);
+                }}
+                onClick={() => {
+                  if (activeCard === index) {
+                    setActiveCard(null);
+                    hoverAnims.current[index]?.pause();
+                    gsap.to(cardsRef.current[index]?.querySelector('.hover-icon'), { scale: 1, rotation: 0, duration: 0.4, ease: "power2.out" });
+                    hoverAnims.current[index]?.time(0);
+                  } else {
+                    setActiveCard(index);
+                    hoverAnims.current[index]?.play();
+                  }
+                }}
               >
                 {/* Number / Label */}
-                <div className="absolute top-4 left-4 text-xs font-mono text-white/50 z-10 transition-colors duration-500 group-hover:text-brand-900 group-hover:font-bold">
+                <div className={`absolute top-4 left-4 text-xs font-mono z-10 transition-colors duration-500 ${isActive ? 'text-brand-900 font-bold' : 'text-white/50'}`}>
                   / 0{index + 1}
                 </div>
                 
                 {/* Outer Border Layer */}
                 <div 
-                  className={`absolute inset-0 bg-brand-800/50 ${service.hoverBgClass} rounded-[24px] transition-all duration-500`}
+                  className={`absolute inset-0 rounded-[24px] transition-all duration-500 ${isActive ? service.activeBgClass : 'bg-brand-800/50'}`}
                 >
                   {/* Inner Background Layer */}
                   <div 
-                    className={`absolute top-[1px] left-[1px] right-[1px] bottom-[1px] bg-brand-800 ${service.hoverBgClass} rounded-[24px] transition-colors duration-500 overflow-hidden`}
+                    className={`absolute top-[1px] left-[1px] right-[1px] bottom-[1px] rounded-[24px] transition-colors duration-500 overflow-hidden ${isActive ? service.activeBgClass : 'bg-brand-800'}`}
                   >
                     {/* Scan Line Effect for Security */}
                     {service.effect === 'scan' && (
@@ -200,7 +216,7 @@ export function Services({ onSelectService }: ServicesProps) {
                     )}
                     
                     {/* Default State Content */}
-                    <div className="absolute inset-0 p-6 sm:p-10 flex flex-col items-center justify-center transition-all duration-500 group-hover:opacity-0 group-hover:scale-95 group-hover:-translate-y-4 z-10">
+                    <div className={`absolute inset-0 p-6 sm:p-10 flex flex-col items-center justify-center transition-all duration-500 z-10 ${isActive ? 'opacity-0 scale-95 -translate-y-4 pointer-events-none' : 'opacity-100 scale-100 translate-y-0'}`}>
                       {/* Counter for Solar */}
                       {service.effect === 'counter' && (
                         <div className="absolute top-8 right-8 flex items-center gap-2">
@@ -225,22 +241,25 @@ export function Services({ onSelectService }: ServicesProps) {
                     </div>
 
                     {/* Hover State Content */}
-                    <div className="absolute inset-0 p-6 sm:p-10 flex flex-col justify-center transition-all duration-500 opacity-0 translate-y-8 group-hover:opacity-100 group-hover:translate-y-0 z-10">
+                    <div className={`absolute inset-0 p-6 sm:p-10 flex flex-col justify-center transition-all duration-500 z-10 ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'}`}>
                       
-                      <Icon className="hover-icon w-10 h-10 text-brand-900 mb-6" strokeWidth={2} />
+                      <Icon className="hover-icon w-10 h-10 text-brand-900 mb-6 shrink-0" strokeWidth={2} />
                       
                       <h4 className="text-2xl font-sans font-bold text-white mb-4 leading-snug tracking-tight drop-shadow-md">
                         {service.title}
                       </h4>
 
-                      <p className="text-brand-900 text-base sm:text-lg font-semibold leading-relaxed">
+                      <p className="text-brand-900 text-base sm:text-lg font-semibold leading-relaxed overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                         {service.description}
                       </p>
                       
                       <a 
                         href="#quote" 
-                        onClick={() => onSelectService && onSelectService(service.formValue)}
-                        className={`mt-8 inline-flex items-center justify-center px-6 py-3 border-2 rounded-xl bg-brand-900 font-bold transition-transform hover:scale-105 shadow-xl ${service.ctaBorderClass} ${service.ctaTextClass}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectService && onSelectService(service.formValue);
+                        }}
+                        className={`mt-4 sm:mt-8 inline-flex items-center justify-center px-6 py-3 border-2 rounded-xl bg-brand-900 font-bold transition-transform hover:scale-105 shadow-xl shrink-0 ${service.ctaBorderClass} ${service.ctaTextClass}`}
                       >
                          {service.ctaText}
                       </a>
